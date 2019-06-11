@@ -26,7 +26,7 @@ if (!flags.package) {
 
 let server = shell.exec('adb shell ps | grep frida-server', { silent: true }).stdout;
 
-if (!server.stdout) {
+if (!server) {
   let serverExists = shell.exec('adb shell test -e /data/local/tmp/frida-server && echo true || echo false', { silent: true });
 
   if (serverExists.stdout.includes('false')) {
@@ -67,28 +67,26 @@ if (!server.stdout) {
   }
 
   console.log('Server started successfully');
-
-  let packageExec = shell.exec(`adb shell pm list packages -f | grep ${flags.package}`, { silent: true });
-
-  let foundPackages = packageExec.stdout;
-
-  if (!foundPackages || !foundPackages.length) {
-    throw new Error(`Found no package with name ${flags.package}`);
-  }
-
-  let filteredPackages = foundPackages.split('\n').filter(p => p);
-
-  if (filteredPackages.length > 1) {
-    console.log(`Found ${filteredPackages.length} packages, please re-run with full package name`);
-    console.log(foundPackages);
-    process.exit();
-  }
-
-  let packageName = foundPackages.replace(/\n/g, '').split('=').reverse()[0].trim();
-
-  console.log(packageName);
-
-  console.log(`Bypass SSL pinning ${packageName} using payload ${flags.type}`);
-
-  shell.exec(`frida -U -f ${packageName} -l payload_${flags.type}.js --no-pause`);
 }
+
+let packageExec = shell.exec(`adb shell pm list packages -f | grep ${flags.package}`, { silent: true });
+
+let foundPackages = packageExec.stdout;
+
+if (!foundPackages || !foundPackages.length) {
+  throw new Error(`Found no package with name ${flags.package}`);
+}
+
+let filteredPackages = foundPackages.split('\n').filter(p => p);
+
+if (filteredPackages.length > 1) {
+  console.log(`Found ${filteredPackages.length} packages, please re-run with full package name`);
+  console.log(foundPackages);
+  process.exit();
+}
+
+let packageName = foundPackages.replace(/\n/g, '').split('=').reverse()[0].trim();
+
+console.log(`Bypass SSL pinning ${packageName} using payload ${flags.type}`);
+
+shell.exec(`frida -U -f ${packageName} -l payload_${flags.type}.js --no-pause`);
