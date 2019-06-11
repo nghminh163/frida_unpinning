@@ -45,7 +45,7 @@ if (!server.stdout) {
       }
     }
 
-    shell.exec(`adb push frida-server-12.6.5-android-${a} /data/local/tmp/frida-server`, { silent: true });
+    shell.exec(`adb push frida-server-12.6.5-android-${a} /data/local/tmp/frida-server && adb shell "chmod 755 /data/local/tmp/frida-server"`, { silent: true });
   }
 
   if (flags.type == '1') {
@@ -84,7 +84,9 @@ if (!server.stdout) {
     process.exit();
   }
 
-  let packageName = foundPackages.replace(/\n/g, '').split('=').reverse()[0];
+  let packageName = foundPackages.replace(/\n/g, '').split('=').reverse()[0].trim();
+
+  console.log(packageName);
 
   console.log(`Bypass SSL pinning ${packageName} using payload ${flags.type}`);
 
